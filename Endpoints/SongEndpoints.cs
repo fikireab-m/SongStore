@@ -14,16 +14,16 @@ public static class SongEndpoints
 
     public static WebApplication MapSongEndpoints(this WebApplication app)
     {
-
-        app.MapGet("/songs/{id}", (int id) =>
+        var group = app.MapGroup("songs");
+        group.MapGet("/{id}", (int id) =>
         {
             SongDto? song = _songs.Find(song => song.Id == id);
             return song == null ? Results.NotFound() : Results.Ok(song);
         }).WithName(GetSongEndpoint);
-        // app.MapGet("/songs/{id}", (int id) => SongDB.GetSong(id));
-        // app.MapGet("/songs", () => SongDB.GetSongs());
-        app.MapGet("/songs", () => _songs);
-        app.MapPost("/songs", (CreateSongDto newSong) =>
+        // group.MapGet("/songs/{id}", (int id) => SongDB.GetSong(id));
+        // group.MapGet("/songs", () => SongDB.GetSongs());
+        group.MapGet("/", () => _songs);
+        group.MapPost("/", (CreateSongDto newSong) =>
         {
             SongDto songDto = new(
                 _songs.Count + 1,
@@ -36,8 +36,8 @@ public static class SongEndpoints
             _songs.Add(songDto);
             return Results.CreatedAtRoute(GetSongEndpoint, new { id = songDto.Id }, songDto);
         });
-        // app.MapPost("/songs", (Song song) => SongDB.CreateSong(song));
-        app.MapPut("/songs/{id}", (int id, UpdateSongDto updatedSong) =>
+        // group.MapPost("/songs", (Song song) => SongDB.CreateSong(song));
+        group.MapPut("/{id}", (int id, UpdateSongDto updatedSong) =>
         {
             var index = _songs.FindIndex(song => song.Id == id);
             if (index == -1)
@@ -55,13 +55,13 @@ public static class SongEndpoints
             return Results.NoContent();
         });
         // app.MapPut("/songs", (Song song) => SongDB.UpdateSong(song));
-        app.MapDelete("/songs/{id}", (int id) =>
+        group.MapDelete("/{id}", (int id) =>
         {
             var song = _songs.Find(song => song.Id == id);
             _songs.RemoveAll(song => song.Id == id);
             return song != null ? Results.NoContent() : Results.NotFound();
         });
-        // app.MapDelete("/songs/{id}", (int id) => SongDB.RemoveSong(id));
+        // group.MapDelete("/songs/{id}", (int id) => SongDB.RemoveSong(id));
         return app;
     }
 }
