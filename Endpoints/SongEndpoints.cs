@@ -14,17 +14,25 @@ public static class SongEndpoints
 
     public static WebApplication MapSongEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("songs");
+        var group = app.MapGroup("songs").WithParameterValidation();
+        // GET{id}
         group.MapGet("/{id}", (int id) =>
         {
             SongDto? song = _songs.Find(song => song.Id == id);
             return song == null ? Results.NotFound() : Results.Ok(song);
         }).WithName(GetSongEndpoint);
-        // group.MapGet("/songs/{id}", (int id) => SongDB.GetSong(id));
-        // group.MapGet("/songs", () => SongDB.GetSongs());
+
+        // GET
         group.MapGet("/", () => _songs);
+
+        // POST
         group.MapPost("/", (CreateSongDto newSong) =>
         {
+            // Tiresome, but possible
+            // if (string.IsNullOrEmpty(newSong.Title))
+            // {
+            //     return Results.BadRequest("Title is required");
+            // }
             SongDto songDto = new(
                 _songs.Count + 1,
                 newSong.Title,
@@ -36,7 +44,8 @@ public static class SongEndpoints
             _songs.Add(songDto);
             return Results.CreatedAtRoute(GetSongEndpoint, new { id = songDto.Id }, songDto);
         });
-        // group.MapPost("/songs", (Song song) => SongDB.CreateSong(song));
+
+        // PUT
         group.MapPut("/{id}", (int id, UpdateSongDto updatedSong) =>
         {
             var index = _songs.FindIndex(song => song.Id == id);
@@ -54,14 +63,14 @@ public static class SongEndpoints
             );
             return Results.NoContent();
         });
-        // app.MapPut("/songs", (Song song) => SongDB.UpdateSong(song));
+
+        // DELETE
         group.MapDelete("/{id}", (int id) =>
         {
             var song = _songs.Find(song => song.Id == id);
             _songs.RemoveAll(song => song.Id == id);
             return song != null ? Results.NoContent() : Results.NotFound();
         });
-        // group.MapDelete("/songs/{id}", (int id) => SongDB.RemoveSong(id));
         return app;
     }
 }
