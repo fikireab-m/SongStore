@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SongStore.Data;
 
@@ -10,9 +11,11 @@ using SongStore.Data;
 namespace SongStore.Data.Migrations
 {
     [DbContext(typeof(SongStoreContext))]
-    partial class SongStoreContextModelSnapshot : ModelSnapshot
+    [Migration("20240306065537_GenreSeed")]
+    partial class GenreSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.2");
