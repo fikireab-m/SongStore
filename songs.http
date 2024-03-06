@@ -11,10 +11,10 @@ POST http://localhost:5210/songs/
 Content-Type: application/json
 
 {
-    "Title": "34+35", 
-    "Album":"Positions", 
-    "Artist":"Ariana Grande",
-    "Genre":"Blues", 
+    "Title": "Ethiopia", 
+    "Album":"Ethiopia", 
+    "Artist":"Teddy Afro",
+    "GenreId":1, 
     "ReleaseDate":"2006-05-06"
 }
 
@@ -23,9 +23,9 @@ PUT http://localhost:5210/songs/5
 Content-Type: application/json
 
 {
-    "Title": "Position", 
-    "Album":"Positions", 
-    "Artist":"Ariana Grande",
-    "Genre":"Blues", 
+    "Title": "Ethiopia", 
+    "Album":"Ethiopia", 
+    "Artist":"Teddy Afro",
+    "GenreId":1, 
     "ReleaseDate":"2006-05-06"
 }

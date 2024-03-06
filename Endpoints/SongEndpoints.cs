@@ -1,4 +1,6 @@
+using SongStore.Data;
 using SongStore.Dtos;
+using SongStore.Entities;
 
 namespace SongStore.Endpoints;
 public static class SongEndpoints
@@ -26,43 +28,47 @@ public static class SongEndpoints
         group.MapGet("/", () => _songs);
 
         // POST
-        group.MapPost("/", (CreateSongDto newSong) =>
+        group.MapPost("/", (CreateSongDto newSong, SongStoreContext dbContext) =>
         {
             // Tiresome, but possible
             // if (string.IsNullOrEmpty(newSong.Title))
             // {
             //     return Results.BadRequest("Title is required");
             // }
-            SongDto songDto = new(
-                _songs.Count + 1,
-                newSong.Title,
-                newSong.Album,
-                newSong.Artist,
-                newSong.Genre,
-                newSong.ReleaseDate
-            );
-            _songs.Add(songDto);
-            return Results.CreatedAtRoute(GetSongEndpoint, new { id = songDto.Id }, songDto);
+            Song song = new()
+            {
+                Title = newSong.Title,
+                Album=newSong.Album,
+                Artist=newSong.Artist,
+                GenreId=newSong.GenreId,
+                Genre = dbContext.Genres.Find(newSong.GenreId),
+                ReleaseDate = newSong.ReleaseDate
+            };
+            dbContext.Songs.Add(song);
+            dbContext.SaveChanges();
+
+            return Results.CreatedAtRoute(GetSongEndpoint, new { id = song.Id }, song);
         });
 
         // PUT
-        group.MapPut("/{id}", (int id, UpdateSongDto updatedSong) =>
-        {
-            var index = _songs.FindIndex(song => song.Id == id);
-            if (index == -1)
-            {
-                return Results.NotFound();
-            }
-            _songs[index] = new SongDto(
-                id,
-                updatedSong.Title,
-                updatedSong.Album,
-                updatedSong.Artist,
-                updatedSong.Genre,
-                updatedSong.ReleaseDate
-            );
-            return Results.NoContent();
-        });
+        // group.MapPut("/{id}", (int id, UpdateSongDto updatedSong) =>
+        // {
+        //     var index = _songs.FindIndex(song => song.Id == id);
+        //     if (index == -1)
+        //     {
+        //         return Results.NotFound();
+        //     }
+        //     _songs[index] = new SongDto(
+        //         id,
+        //         updatedSong.Title,
+        //         updatedSong.AlbumId,
+        //         updatedSong.ArtistId,
+        //         updatedSong.GenreId,
+        //         updatedSong.ReleaseDate
+
+        //     );
+        //     return Results.NoContent();
+        // });
 
         // DELETE
         group.MapDelete("/{id}", (int id) =>

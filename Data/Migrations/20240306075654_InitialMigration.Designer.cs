@@ -11,49 +11,14 @@ using SongStore.Data;
 namespace SongStore.Data.Migrations
 {
     [DbContext(typeof(SongStoreContext))]
-    [Migration("20240306065537_GenreSeed")]
-    partial class GenreSeed
+    [Migration("20240306075654_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.2");
-
-            modelBuilder.Entity("SongStore.Entities.Album", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ArtistId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArtistId");
-
-                    b.ToTable("Albums");
-                });
-
-            modelBuilder.Entity("SongStore.Entities.Artist", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Artists");
-                });
 
             modelBuilder.Entity("SongStore.Entities.Genre", b =>
                 {
@@ -133,11 +98,13 @@ namespace SongStore.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AlbumId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Album")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("ArtistId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Artist")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("GenreId")
                         .HasColumnType("INTEGER");
@@ -151,49 +118,18 @@ namespace SongStore.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AlbumId");
-
-                    b.HasIndex("ArtistId");
-
                     b.HasIndex("GenreId");
 
                     b.ToTable("Songs");
                 });
 
-            modelBuilder.Entity("SongStore.Entities.Album", b =>
-                {
-                    b.HasOne("SongStore.Entities.Artist", "Artist")
-                        .WithMany()
-                        .HasForeignKey("ArtistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Artist");
-                });
-
             modelBuilder.Entity("SongStore.Entities.Song", b =>
                 {
-                    b.HasOne("SongStore.Entities.Album", "Album")
-                        .WithMany()
-                        .HasForeignKey("AlbumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SongStore.Entities.Artist", "Artist")
-                        .WithMany()
-                        .HasForeignKey("ArtistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SongStore.Entities.Genre", "Genre")
                         .WithMany()
                         .HasForeignKey("GenreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Album");
-
-                    b.Navigation("Artist");
 
                     b.Navigation("Genre");
                 });
