@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using SongStore.Data;
 using SongStore.Dtos;
 using SongStore.Entities;
+using SongStore.Mapping;
 
 namespace SongStore.Endpoints;
 public static class SongEndpoints
@@ -8,24 +10,22 @@ public static class SongEndpoints
 
     const string GetSongEndpoint = "GetSong";
 
-    private static readonly List<SongDto> _songs = [
-         new SongDto( 1, "Hello", "Hello", "Celiendion","Blues", new DateOnly(2023,05,06)),
-     new SongDto(2, "Ethiopia", "Ethiopia", "Teddy Afro","Pop", new DateOnly(2013,05,06)),
-     new SongDto( 3, "Hilm ayidegemim", "Tkur sew", "Teddy Afro","Pop", new DateOnly(2021,05,06))
-       ];
-
     public static WebApplication MapSongEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("songs").WithParameterValidation();
         // GET{id}
-        group.MapGet("/{id}", (int id) =>
+        group.MapGet("/{id}", (int id, SongStoreContext dbContext) =>
         {
-            SongDto? song = _songs.Find(song => song.Id == id);
-            return song == null ? Results.NotFound() : Results.Ok(song);
+            Song? song = dbContext.Songs.Find(id);
+            return song == null ? Results.NotFound() : Results.Ok(song.ToDetailsDto());
         }).WithName(GetSongEndpoint);
 
         // GET
-        group.MapGet("/", () => _songs);
+        group.MapGet("/", (SongStoreContext dbContext) => dbContext
+        .Songs
+        .Include(game => game.Genre)
+        .Select(game => game.ToDto())
+        );
 
         // POST
         group.MapPost("/", (CreateSongDto newSong, SongStoreContext dbContext) =>
@@ -35,48 +35,37 @@ public static class SongEndpoints
             // {
             //     return Results.BadRequest("Title is required");
             // }
-            Song song = new()
-            {
-                Title = newSong.Title,
-                Album=newSong.Album,
-                Artist=newSong.Artist,
-                GenreId=newSong.GenreId,
-                Genre = dbContext.Genres.Find(newSong.GenreId),
-                ReleaseDate = newSong.ReleaseDate
-            };
+            Song song = newSong.ToEntity();
             dbContext.Songs.Add(song);
             dbContext.SaveChanges();
 
-            return Results.CreatedAtRoute(GetSongEndpoint, new { id = song.Id }, song);
+            return Results.CreatedAtRoute(
+                GetSongEndpoint,
+                new { id = song.Id },
+                song.ToDto()
+                );
         });
 
         // PUT
-        // group.MapPut("/{id}", (int id, UpdateSongDto updatedSong) =>
-        // {
-        //     var index = _songs.FindIndex(song => song.Id == id);
-        //     if (index == -1)
-        //     {
-        //         return Results.NotFound();
-        //     }
-        //     _songs[index] = new SongDto(
-        //         id,
-        //         updatedSong.Title,
-        //         updatedSong.AlbumId,
-        //         updatedSong.ArtistId,
-        //         updatedSong.GenreId,
-        //         updatedSong.ReleaseDate
-
-        //     );
-        //     return Results.NoContent();
-        // });
+        group.MapPut("/{id}", (int id, SongStoreContext dbContext, UpdateSongDto updatedSong) =>
+        {
+            var existingSong = dbContext.Songs.Find(id);
+            if (existingSong is null)
+            {
+                return Results.NotFound();
+            }
+            dbContext.Entry(existingSong).CurrentValues.SetValues(updatedSong.ToEntity(id));
+            dbContext.SaveChanges();
+            return Results.NoContent();
+        });
 
         // DELETE
-        group.MapDelete("/{id}", (int id) =>
-        {
-            var song = _songs.Find(song => song.Id == id);
-            _songs.RemoveAll(song => song.Id == id);
-            return song != null ? Results.NoContent() : Results.NotFound();
-        });
+        // group.MapDelete("/{id}", (int id, SongStoreContext dbContext) =>
+        // {
+        //     var song = _songs.Find(song => song.Id == id);
+        //     _songs.RemoveAll(song => song.Id == id);
+        //     return song != null ? Results.NoContent() : Results.NotFound();
+        // });
         return app;
     }
 }
