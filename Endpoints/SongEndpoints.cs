@@ -14,21 +14,23 @@ public static class SongEndpoints
     {
         var group = app.MapGroup("songs").WithParameterValidation();
         // GET{id}
-        group.MapGet("/{id}", (int id, SongStoreContext dbContext) =>
+        group.MapGet("/{id}", async (int id, SongStoreContext dbContext) =>
         {
-            Song? song = dbContext.Songs.Find(id);
+            Song? song = await dbContext.Songs.FindAsync(id);
             return song == null ? Results.NotFound() : Results.Ok(song.ToDetailsDto());
         }).WithName(GetSongEndpoint);
 
         // GET
-        group.MapGet("/", (SongStoreContext dbContext) => dbContext
+        group.MapGet("/", async (SongStoreContext dbContext) => await dbContext
         .Songs
-        .Include(game => game.Genre)
-        .Select(game => game.ToDto())
+        .Include(song => song.Genre)
+        .Select(song => song.ToDto())
+        .AsNoTracking()
+        .ToListAsync()
         );
 
         // POST
-        group.MapPost("/", (CreateSongDto newSong, SongStoreContext dbContext) =>
+        group.MapPost("/", async (CreateSongDto newSong, SongStoreContext dbContext) =>
         {
             // Tiresome, but possible
             // if (string.IsNullOrEmpty(newSong.Title))
@@ -37,7 +39,7 @@ public static class SongEndpoints
             // }
             Song song = newSong.ToEntity();
             dbContext.Songs.Add(song);
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             return Results.CreatedAtRoute(
                 GetSongEndpoint,
@@ -47,25 +49,25 @@ public static class SongEndpoints
         });
 
         // PUT
-        group.MapPut("/{id}", (int id, SongStoreContext dbContext, UpdateSongDto updatedSong) =>
+        group.MapPut("/{id}", async (int id, SongStoreContext dbContext, UpdateSongDto updatedSong) =>
         {
-            var existingSong = dbContext.Songs.Find(id);
+            var existingSong = await dbContext.Songs.FindAsync(id);
             if (existingSong is null)
             {
                 return Results.NotFound();
             }
             dbContext.Entry(existingSong).CurrentValues.SetValues(updatedSong.ToEntity(id));
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
             return Results.NoContent();
         });
 
         // DELETE
-        // group.MapDelete("/{id}", (int id, SongStoreContext dbContext) =>
-        // {
-        //     var song = _songs.Find(song => song.Id == id);
-        //     _songs.RemoveAll(song => song.Id == id);
-        //     return song != null ? Results.NoContent() : Results.NotFound();
-        // });
+        group.MapDelete("/{id}", async (int id, SongStoreContext dbContext) =>
+        {
+            var songDeleted = await dbContext.Songs.Where(song => song.Id == id).ExecuteDeleteAsync();
+
+            return Results.NoContent();
+        });
         return app;
     }
 }

@@ -19,6 +19,7 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "SongStore API V1");
 });
-app.MigrateDb();
+await app.MigrateDbAsync();
 app.MapSongEndpoints();
+app.MapGenreEndpoints();
 app.Run();
