@@ -1,0 +1,18 @@
+
+###
+GET http://localhost:5210/genres/
+
+###
+GET http://localhost:5210/genres/2
+
+###
+DELETE http://localhost:5210/genres/13
+
+###
+POST http://localhost:5210/genres/
+Content-Type: application/json
+
+{
+    "Id":13,
+    "Name":"New Genre"
+}

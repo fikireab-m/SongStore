@@ -21,5 +21,4 @@ app.UseSwaggerUI(c =>
 });
 await app.MigrateDbAsync();
 app.MapSongEndpoints();
-app.MapGenreEndpoints();
 app.Run();

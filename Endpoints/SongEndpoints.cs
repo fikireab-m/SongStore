@@ -7,7 +7,6 @@ using SongStore.Mapping;
 namespace SongStore.Endpoints;
 public static class SongEndpoints
 {
-
     const string GetSongEndpoint = "GetSong";
 
     public static WebApplication MapSongEndpoints(this WebApplication app)
@@ -68,6 +67,46 @@ public static class SongEndpoints
 
             return Results.NoContent();
         });
+
+
+        /*
+        Genre routes
+        */
+        // GET{id}
+        app.MapGet("/genres/{id}", async (int id, SongStoreContext dbContext) =>
+        {
+            Genre? genre = await dbContext.Genres.FindAsync(id);
+            return genre == null ? Results.NotFound() : Results.Ok(genre);
+        });
+
+        // GET
+        app.MapGet("/genres", async (SongStoreContext dbContext) => await dbContext
+        .Genres
+        .AsNoTracking()
+        .ToListAsync()
+        );
+
+        // POST
+        app.MapPost("/genres", async (Genre newGenre, SongStoreContext dbContext) =>
+        {
+            Genre genre = new()
+            {
+                Id = newGenre.Id,
+                Name = newGenre.Name
+            };
+            dbContext.Genres.Add(genre);
+            await dbContext.SaveChangesAsync();
+
+            return Results.Ok(genre);
+        });
+
+        app.MapDelete("/{id}", async (int id, SongStoreContext dbContext) =>
+        {
+            await dbContext.Genres.Where(genre => genre.Id == id).ExecuteDeleteAsync();
+
+            return Results.NoContent();
+        });
+
         return app;
     }
 }
