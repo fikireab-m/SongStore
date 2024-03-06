@@ -1,6 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace SongStore.Dtos;
+using System.ComponentModel.DataAnnotations;
 public record class CreateSongDto(
     [Required][StringLength(50)] string Title,
     [Required][StringLength(30)] string Album,
